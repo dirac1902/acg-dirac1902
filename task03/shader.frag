@@ -25,9 +25,13 @@ float SDF(vec3 pos)
   // The radius of the small spheres is `0.12` and it's repeaded at intrval of `0.2` in the grid pattern
   // Look Inigo Quilez's article for hints:
   // https://iquilezles.org/articles/distfunctions/
-
+  float big_sphere = length(pos) - 0.8;  //big sphere
+  vec3 c = vec3(0.2, 0.2, 0.2);  //repetition period
+  vec3 q = mod(pos+0.5*c,c)-0.5*c;  //center points of small spheres
+  float small_sphere = length(q)-0.12;  //small spheres
+  return max(big_sphere, -small_sphere);  //substraction
   // for "problem2" the code below is not used.
-  return sdf_box(pos, vec3(0.1,0.2,0.3));
+  // return sdf_box(pos, vec3(0.1,0.2,0.3));
 }
 
 void main()
@@ -43,7 +47,7 @@ void main()
   // gl_FragCoord: the coordinate of the pixel
   // left-bottom is (0,0), right-top is (W,H)
   // https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/gl_FragCoord.xhtml
-  vec2 scr_xy = gl_FragCoord.xy / vec2(500,500) * 2.0 - vec2(1,1); // canonical screen position [-1,+1] x [-1,+1]
+  vec2 scr_xy = gl_FragCoord.xy / vec2(500*2,500*2) * 2.0 - vec2(1,1); // canonical screen position [-1,+1] x [-1,+1]
   vec3 src = frame_x * scr_xy.x + frame_y * scr_xy.y + frame_z * 1;  // source of ray from pixel
   vec3 dir = -frame_z;  // direction of ray (looking at the origin)
 

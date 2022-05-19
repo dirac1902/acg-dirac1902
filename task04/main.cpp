@@ -42,34 +42,51 @@ double SamplingHemisphere(
     std::array<unsigned short, 3> &Xi,
     const double nrm[3])  //
 {
-  // below implement code to sample hemisphere with cosine weighted probabilistic distribution
-  // hint1: use polar coordinate (longitude and latitude).
-  // hint2: generate two float values using "dfm2::MyERand48<double>(Xi)". One will be longitude and another will be latitude
-  // hint3: for longitude use inverse sampling method to achieve cosine weighted sample.
-  // hint4: first assume z is the up in the polar coordinate, then rotate the sampled direction such that "z" will be up.
-  // write some codes below (5-10 lines)
-
-
+    // below implement code to sample hemisphere with cosine weighted probabilistic distribution
+    // hint1: use polar coordinate (longitude and latitude).
+    // hint2: generate two float values using "dfm2::MyERand48<double>(Xi)". One will be longitude and another will be latitude
+    // hint3: for longitude use inverse sampling method to achieve cosine weighted sample.
+    // hint4: first assume z is the up in the polar coordinate, then rotate the sampled direction such that "z" will be up.
+    // write some codes below (5-10 lines)
+    //sampling hemisphere
+    const auto u = dfm2::MyERand48<double>(Xi);
+    const auto v = dfm2::MyERand48<double>(Xi);
+    double phi = 2 * M_PI * u;  //the range is (0,2*pi) for phi
+    double theta = acos(sqrt(1 - v));
+    dir[0] = sin(theta) * cos(phi);  //x
+    dir[1] = sin(theta) * sin(phi);  //y
+    dir[2] = cos(theta);  //z
+    //rotation by Rodrigues' rotation formula
+    double cos0 = nrm[2];  //inner product of (0,0,1) & nrm[3]
+    double alpha = acos(cos0);  //rotation angle
+    double d = sqrt(nrm[1] * nrm[1] + nrm[0] * nrm[0]);
+    double k[3] = {-nrm[1] / d, nrm[0] / d, 0};  //axis of rotation
+    double cross[3] = {k[1] * dir[2] - k[2] * dir[1], k[2] * dir[0] - k[0] * dir[2], k[0] * dir[1] - k[1] * dir[0]};
+    double inner = k[0] * dir[0] + k[1] * dir[1] + k[2] * dir[2];
+    for (int i = 0; i < 3; ++i) {  //apply the formula
+        dir[i] = cos0 * dir[i] + sin(alpha) * cross[i] + inner * (1 - cos0) * k[i];
+    }
+    return 1;
   // below: naive implementation to "uniformly" sample hemisphere using "rejection sampling"
   // to not be used for the "problem2" in the assignment
-  for(int i=0;i<10;++i) { // 10 is a magic number
-    const auto d0 = dfm2::MyERand48<double>(Xi);  // you can sample uniform distribution [0,1] with this function
-    const auto d1 = dfm2::MyERand48<double>(Xi);
-    const auto d2 = dfm2::MyERand48<double>(Xi);
-    dir[0] = d0 * 2 - 1; // dir[0] -> [-1,+1]
-    dir[1] = d1 * 2 - 1;
-    dir[2] = d2 * 2 - 1;
-    double len = std::sqrt(dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2]);
-    if( len > 1 ){ continue; } // reject if outside the unit sphere
-    if( len < 1.0e-5 ){ continue; }
-    // project on the surface of the unit sphere
-    dir[0] /= len;
-    dir[1] /= len;
-    dir[2] /= len;
-    double cos = nrm[0]*dir[0] + nrm[1]*dir[1] + nrm[2]*dir[2]; // cosine weight
-    if( cos < 0 ){ continue; }
-    return cos*2;  // (coefficient=1/M_PI) * (area_of_hemisphere=M_PI*2) = 2
-  }
+//  for(int i=0;i<10;++i) { // 10 is a magic number
+//    const auto d0 = dfm2::MyERand48<double>(Xi);  // you can sample uniform distribution [0,1] with this function
+//    const auto d1 = dfm2::MyERand48<double>(Xi);
+//    const auto d2 = dfm2::MyERand48<double>(Xi);
+//    dir[0] = d0 * 2 - 1; // dir[0] -> [-1,+1]
+//    dir[1] = d1 * 2 - 1;
+//    dir[2] = d2 * 2 - 1;
+//    double len = std::sqrt(dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2]);
+//    if( len > 1 ){ continue; } // reject if outside the unit sphere
+//    if( len < 1.0e-5 ){ continue; }
+//    // project on the surface of the unit sphere
+//    dir[0] /= len;
+//    dir[1] /= len;
+//    dir[2] /= len;
+//    double cos = nrm[0]*dir[0] + nrm[1]*dir[1] + nrm[2]*dir[2]; // cosine weight
+//    if( cos < 0 ){ continue; }
+//    return cos*2;  // (coefficient=1/M_PI) * (area_of_hemisphere=M_PI*2) = 2
+//  }
   return 0;
 }
 

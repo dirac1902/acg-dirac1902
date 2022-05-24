@@ -119,7 +119,7 @@ uniform vec2 p0, p1, p2, p3;
 
 void main()
 {
-  vec2 q = 2 * gl_FragCoord.xy / 500 - 1; // position (left is zero)
+  vec2 q = 2 * gl_FragCoord.xy / (500*1.5) - 1; // position (left is zero)
 
   // Bezier curve with control points {p0,p1,p2,p3} look from q
   // p(t) = (1-t)^3*p0 + 3*(1-t)^2t*p1 + 3*(1-t)t^2*p2 + t^3*p3 - q;
@@ -185,6 +185,16 @@ void main()
     // Problem2 of the assignment
     // write some code to complete the implementation of bisection method
     // around 10 lines of code should be enough
+    int snm = SturmNumber(middle,sturm_seq);
+    if(snl == snm) {
+      stack[nstack] = range(middle, upper, snm, snu);
+    } else if(snm == snu) {
+      stack[nstack] = range(lower, middle, snl, snm);
+    } else{
+      stack[nstack] = range(lower, middle, snl, snm);
+      stack[++nstack] = range(middle, upper, snm, snu);
+    }
+    ++nstack;
   }
 
 

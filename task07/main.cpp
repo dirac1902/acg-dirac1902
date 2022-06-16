@@ -129,7 +129,29 @@ int main() {
       // if energy is zero, the tip of the cone (output position) and the red sphere (target position) match.
       // Adjust the coefficient LM algorithm such that the energy decrease after updating "arb.angle".
       // The implementation should be 3-5 in lines.
-
+      double co = 0.01;  //initial coefficient
+      ArticulatedRigidBodies new_arb;
+      double W2 = W0;
+      for(int i=0; i<200;i++) {
+          new_arb.angle = arb.angle - (arb.diff_pos_def.transpose() * arb.diff_pos_def+
+                                                         co * Eigen::MatrixXd::Identity(8, 8)).inverse() *
+                                                                 arb.diff_pos_def.transpose() * (arb.pos_def-pos_trg);
+          new_arb.UpdateTransformations();
+          const Eigen::Vector3d new_pos_def = new_arb.pos_def;
+          double W = 0.5*(new_pos_def - pos_trg).dot(new_pos_def - pos_trg);
+          if(W < 1e-4) {  //match, end the iteration
+              arb.angle = new_arb.angle;
+              break;
+          }
+          if(W<W2){  //update coefficient
+              arb.angle = new_arb.angle;
+              co /= 10;  //let the Newton method takes a lead
+              arb.UpdateTransformations();
+              W2 = 0.5*(arb.pos_def - pos_trg).dot(arb.pos_def - pos_trg);
+          } else {
+              co *= 10;  //let GD takes a lead
+          }
+      }
       // editing ends here
       arb.UpdateTransformations();
       double W1 = 0.5*(arb.pos_def - pos_trg).dot(arb.pos_def - pos_trg); // energy after update
